@@ -47,3 +47,51 @@
 役割: エラーが起きそうな処理を監視し、起きた場合のバックアップ（catch）を用意します。
 <js-class name="..." extends="..."> ... </js-class>
 役割: 設計図（クラス）を作ります。extendsを使えば他の設計図を継承（パワーアップ）できます。
+
+
+# jshm
+
+1. Data Definition (Mainly without closing tags)
+These are responsible for storing values ​​in "memory (variable storage location)".
+<js-let />
+Role: Defines a mutable variable.
+Example: <js-let name="score" val="100" />
+<js-const />
+Role: Fixes a value as immutable (constant).
+<js-array />
+Role: Creates a list (array). Values ​​are stored in val separated by commas.
+Example: <js-array name="colors" val="red,blue,green" />
+<js-obj />
+Role: Creates a set of data (object). Written in JSON format.
+<js-bool />
+Role: Defines a switch that is either true or false.
+<js-delete />
+Role: Deletes a specific variable from memory.
+<js-export />
+Role: Exposes variables within tags so they can be seen from normal JavaScript (external files, etc.). 2. Execution/Event-Based (with closing tags)
+These are responsible for creating movement and running processes at specific times.
+<js-func> ... </js-func>
+Role: Executes the code inside immediately the moment the tag is loaded.
+<js-def name="..."> ... </js-def>
+Role: Defines a function. Can be reused any number of times by simply calling the name later.
+<js-on name="..." val="..."> ... </js-on>
+Role: Schedules events such as button presses.
+Example: <js-on name="click" val="btnID"> ... </js-on> (Executes when the button is pressed)
+<js-async> ... </js-async>
+Role: Performs asynchronous processing. Used when retrieving data from the internet using await fetch(), etc.
+
+3. Control Structures (Creating the Program Flow)
+This is the "brain" part that changes or repeats actions based on conditions.
+
+<js-if cond="..."> ... </js-if>
+Role: Executes the contents only when the cond (condition) is true.
+<js-for cond="..."> ... </js-for>
+Role: Repeats the contents the specified number of times.
+<js-switch val="..."> / <js-case>
+Role: Branches from many options, such as "when the value is A" or "when the value is B".
+<js-while val="..."> ... </js-while>
+Role: Repeats indefinitely as long as the condition is met.
+<js-try> ... </js-try> / <js-catch>
+Role: Monitors processes that are likely to cause errors and provides a backup (catch) in case an error occurs.
+<js-class name="..." extends="..."> ... </js-class>
+Role: Creates a blueprint (class). Using extends allows you to inherit (power up) other blueprints.
