@@ -1,32 +1,31 @@
-// 究極の共通メモリ（名前空間）
+// 1. メモリ管理（変数の保存場所）
 const jsMemory: Record<string, any> = { ...window };
 
+// 2. エンジンの本体（タグの解析機）
 class JSFullPowerEngine extends HTMLElement {
     async connectedCallback() {
         const tag = this.tagName.toLowerCase();
         const name = this.getAttribute('name');
         const val = this.getAttribute('val');
         const cond = this.getAttribute('cond');
-        const match = this.getAttribute('match');
         const code = this.textContent || "";
 
-        // --- 1. 【定義・メモリ管理系】 (閉じタグなし) ---
+        // --- 定義系 (閉じタグなし) ---
         if (tag === 'js-let' || tag === 'js-const') {
             jsMemory[name!] = this.safeEval(val);
         } else if (tag === 'js-delete') {
             delete jsMemory[name!];
         } else if (tag === 'js-export') {
-            (window as any)[name!] = jsMemory[name!]; // 外部JSからアクセス可能にする
+            (window as any)[name!] = jsMemory[name!];
         }
 
-        // --- 2. 【高度な制御構文系】 (閉じタグあり) ---
+        // --- 制御構文系 (閉じタグあり) ---
         else if (tag === 'js-for') {
-            // 例: <js-for cond="let i=0; i<5; i++"> ... </js-for>
-            const setup = cond?.split(';')[0] || "";
-            const test = cond?.split(';')[1] || "true";
-            const update = cond?.split(';')[2] || "";
-            const loopRunner = new Function('vars', `with(vars){ for(${setup}; ${test}; ${update}){ ${code} } }`);
-            loopRunner(jsMemory);
+            const parts = cond?.split(';') || [];
+            const setup = parts[0] || "";
+            const test = parts[1] || "true";
+            const update = parts[2] || "";
+            new Function('vars', `with(vars){ for(${setup}; ${test}; ${update}){ ${code} } }`)(jsMemory);
         } else if (tag === 'js-switch') {
             const target = this.safeEval(val);
             const cases = this.querySelectorAll('js-case');
@@ -34,6 +33,66 @@ class JSFullPowerEngine extends HTMLElement {
             cases.forEach(c => {
                 if (!matched && (c.getAttribute('match') === String(target) || c.hasAttribute('default'))) {
                     this.execute(c.textContent || "");
+                    matched = true;
+                }
+            });
+        } else if (tag === 'js-if' && this.safeEval(cond)) {
+            this.execute(code);
+        }
+
+        // --- クラスと非同期、イベント ---
+        else if (tag === 'js-class') {
+            const base = this.getAttribute('extends');
+            const BaseClass = base ? jsMemory[base] : class {};
+            jsMemory[name!] = class extends BaseClass {
+                constructor(...args: any[]) {
+                    super(...args);
+                    new Function('self', 'vars', 'args', `with(vars){ ${code} }`)(this, jsMemory, args);
+                }
+            };
+        } else if (tag === 'js-async') {
+            const AsyncFunc = Object.getPrototypeOf(async function(){}).constructor;
+            await new AsyncFunc('vars', `with(vars){ ${code} }`)(jsMemory);
+        } else if (tag === 'js-func') {
+            this.execute(code);
+        } else if (tag === 'js-on') {
+            document.getElementById(val!)?.addEventListener(name!, () => this.execute(code));
+        }
+    }
+
+    private safeEval(exp: string | null) {
+        if (!exp) return null;
+        try { return new Function('vars', `with(vars){ return ${exp} }`)(jsMemory); } catch { return exp; }
+    }
+
+    private execute(logic: string) {
+        try { return new Function('vars', `with(vars){ ${logic} }`)(jsMemory); } catch (e) { console.error(e); }
+    }
+}
+
+// 3. 全タグの登録
+const allJsTags = ['js-let', 'js-const', 'js-delete', 'js-export', 'js-for', 'js-switch', 'js-case', 'js-if', 'js-class', 'js-def', 'js-func', 'js-async', 'js-on'];
+allJsTags.forEach(t => customElements.define(t, JSFullPowerEngine));
+
+// 4. .jshm ローダー（外部ファイル読み込み機能）
+async function loadJSHM(url: string) {
+    try {
+        const response = await fetch(url);
+        const text = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+        doc.body.childNodes.forEach(node => document.body.appendChild(node.cloneNode(true)));
+        console.log(`[JSHM] ${url} loaded.`);
+    } catch (err) { console.error("[JSHM] Load error:", err); }
+}
+
+// 5. 自動実行設定
+window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('script[type="application/jshm"]').forEach(s => {
+        const src = s.getAttribute('src');
+        if (src) loadJSHM(src);
+    });
+});
                     matched = true;
                 }
             });
