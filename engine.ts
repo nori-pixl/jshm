@@ -2,6 +2,15 @@
 const jsMemory: Record<string, any> = { ...window };
 // 1. HTMLタグを含んだ変数を作成
 let jshm = '<div style="color: red;">これはJSで定義したHTMLです</div>';
+// 1. 新しい <div> 要素を生成（定義）
+let newElement = document.createElement('div');
+
+// 2. 中身や属性を設定
+newElement.textContent = "新しく作られた要素です";
+newElement.className = "my-class";
+
+// 3. 画面上の好きな場所（例：bodyの最後）に追加
+document.body.appendChild(newElement);
 
 // 2. id="result" の要素に、変数の中身を「HTML」として流し込む
 document.getElementById('result').innerHTML = jshm;
