@@ -1,5 +1,10 @@
 // 1. メモリ管理
 const jsMemory: Record<string, any> = { ...window };
+// 1. HTMLタグを含んだ変数を作成
+let jshm = '<div style="color: red;">これはJSで定義したHTMLです</div>';
+
+// 2. id="result" の要素に、変数の中身を「HTML」として流し込む
+document.getElementById('result').innerHTML = jshm;
 
 class JSFullPowerEngine extends HTMLElement {
     async connectedCallback() {
